@@ -170,15 +170,6 @@ class _FreeRewardsScreenState extends State<FreeRewardsScreen> {
           color: Colors.blue,
           rewardType: 'triple_shot',
         ),
-        const SizedBox(height: 16),
-        
-        _buildRewardCard(
-          icon: Icons.favorite,
-          title: 'Vida Extra GRATIS',
-          description: 'Gana un pájaro adicional',
-          color: Colors.red,
-          rewardType: 'extra_life',
-        ),
       ],
     );
   }
@@ -343,14 +334,11 @@ class _FreeRewardsScreenState extends State<FreeRewardsScreen> {
       case 'triple_shot':
         itemName = 'Triple Shot';
         break;
-      case 'extra_life':
-        itemName = 'Extra Life';
-        break;
       default:
         itemName = 'Power-Up';
     }
 
-    // Mostrar mensaje de éxito
+    // Mostrar mensaje de éxito y retornar al juego
     if (mounted) {
       showDialog(
         context: context,

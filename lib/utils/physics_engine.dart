@@ -2,6 +2,7 @@ import 'dart:ui';
 import '../models/bird.dart';
 import '../models/block.dart';
 import '../models/enemy.dart';
+import '../models/ground.dart';
 
 class PhysicsEngine {
   static const double gravity = 0.5;
@@ -54,16 +55,19 @@ class PhysicsEngine {
     Bird bird,
     List<Block> blocks,
     List<Enemy> enemies,
-    double groundY,
+    Ground ground,
   ) {
-    bird.handleGroundCollision(groundY);
+    // Colisión del pájaro con el suelo
+    bird.handleGroundCollision(ground.y);
 
+    // Colisiones de bloques con el suelo
     for (var block in blocks) {
-      block.handleGroundCollision(groundY);
+      block.handleGroundCollision(ground.y);
     }
 
+    // Colisiones de enemigos con el suelo
     for (var enemy in enemies) {
-      enemy.handleGroundCollision(groundY);
+      enemy.handleGroundCollision(ground.y);
     }
   }
 

@@ -15,6 +15,7 @@ class Block {
   final double height;
   bool isDestroyed;
   String imagePath;
+  bool isPlaced; // Indica si el bloque está colocado (no debe aplicarse gravedad)
 
   Block({
     required this.position,
@@ -23,6 +24,7 @@ class Block {
     this.width = 40,
     this.height = 40,
     this.isDestroyed = false,
+    this.isPlaced = true, // Por defecto, los bloques están colocados
   })  : maxHealth = type == BlockType.wood ? 20 : 40,
         health = type == BlockType.wood ? 20 : 40,
         imagePath = _getRandomBlockImage(type);
@@ -49,23 +51,30 @@ class Block {
   }
 
   void update() {
-    // Aplicar gravedad
-    velocity = Offset(velocity.dx, velocity.dy + 0.5);
+    // Solo aplicar física si el bloque no está colocado (ya fue golpeado)
+    if (!isPlaced) {
+      // Aplicar gravedad
+      velocity = Offset(velocity.dx, velocity.dy + 0.5);
 
-    // Aplicar fricción
-    velocity = velocity * 0.98;
+      // Aplicar fricción
+      velocity = velocity * 0.98;
 
-    // Actualizar posición
-    position = position + velocity;
+      // Actualizar posición
+      position = position + velocity;
 
-    // Detener si velocidad es muy baja
-    if (velocity.distance < 0.5) {
-      velocity = const Offset(0, 0);
+      // Detener si velocidad es muy baja
+      if (velocity.distance < 0.5) {
+        velocity = const Offset(0, 0);
+      }
     }
   }
 
   void takeDamage(double damage) {
     health -= damage;
+    
+    // Cuando el bloque recibe daño, ya no está "colocado"
+    isPlaced = false;
+    
     if (health <= 0) {
       isDestroyed = true;
     }

@@ -9,6 +9,7 @@ import '../models/enemy.dart';
 import '../models/particle.dart';
 import '../models/star_system.dart';
 import '../models/score.dart';
+import '../models/ground.dart';
 import '../utils/physics_engine.dart';
 import '../utils/collision_detector.dart';
 import '../utils/asset_manager.dart';
@@ -34,12 +35,13 @@ class _GameScreenState extends State<GameScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Bird _bird;
+  late Ground _ground;
   List<Block> _blocks = [];
   List<Enemy> _enemies = [];
   List<Particle> _particles = [];
 
   final Offset _initialBirdPosition = const Offset(150, 280);
-  final double _groundY = 420;
+  final double _groundY = 520; // Ajustado para pantalla (más abajo, más visible)
   final double _maxStretch = 100;
 
   int _score = 0;
@@ -78,6 +80,13 @@ class _GameScreenState extends State<GameScreen>
     )..addListener(_update);
 
     _bird = Bird(position: _initialBirdPosition);
+    _ground = Ground(
+      y: _groundY,
+      height: 100.0,
+      width: 2000.0,
+      friction: 0.8,
+      restitution: 0.3,
+    );
     _loadLevel(_currentLevel);
     _controller.repeat();
   }
@@ -160,7 +169,10 @@ class _GameScreenState extends State<GameScreen>
       _updateCamera();
 
       // Colisiones con el suelo
-      PhysicsEngine.handleGroundCollisions(_bird, _blocks, _enemies, _groundY);
+      PhysicsEngine.handleGroundCollisions(_bird, _blocks, _enemies, _ground);
+
+      // Detectar colisiones entre bloques (física realista)
+      _handleBlockCollisions();
 
       // Detectar colisiones
       var collisions = CollisionDetector.detectAllCollisions(
@@ -209,6 +221,41 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
+  void _handleBlockCollisions() {
+    // Detectar colisiones entre bloques
+    for (int i = 0; i < _blocks.length; i++) {
+      for (int j = i + 1; j < _blocks.length; j++) {
+        final block1 = _blocks[i];
+        final block2 = _blocks[j];
+
+        // Solo verificar si al menos uno está en movimiento
+        if (block1.isPlaced && block2.isPlaced) continue;
+
+        // Calcular distancia entre centros
+        final dx = block1.position.dx - block2.position.dx;
+        final dy = block1.position.dy - block2.position.dy;
+        final distance = (dx * dx + dy * dy);
+        
+        // Calcular distancia mínima para colisión (AABB simplificado)
+        final minDistance = ((block1.width + block2.width) / 2) * 
+                           ((block1.height + block2.height) / 2);
+
+        if (distance < minDistance) {
+          // Colisión detectada!
+          
+          // Si el bloque en movimiento golpea uno colocado, activar ambos
+          if (!block1.isPlaced && block2.isPlaced && block1.velocity.distance > 2) {
+            block2.isPlaced = false;
+            block2.velocity = Offset(dx * 0.1, -2); // Impulso hacia arriba
+          } else if (block1.isPlaced && !block2.isPlaced && block2.velocity.distance > 2) {
+            block1.isPlaced = false;
+            block1.velocity = Offset(-dx * 0.1, -2); // Impulso hacia arriba
+          }
+        }
+      }
+    }
+  }
+
   void _loadLevel(int level) {
     _blocks.clear();
     _enemies.clear();
@@ -254,14 +301,17 @@ class _GameScreenState extends State<GameScreen>
       for (int j = 0; j < 3; j++) {
         _blocks.add(
           Block(
-            position: Offset(baseX + (j - 1) * 45, baseY - 45 - (i * 45)),
+            position: Offset(
+              baseX + (j - 1) * 45, 
+              baseY - 20 - (i * 45) // Ajustado: -20 para que toque el suelo (height/2)
+            ),
             type: (i + j) % 2 == 0 ? BlockType.wood : BlockType.stone,
           ),
         );
       }
     }
 
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 180)));
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 160))); // Ajustado también
   }
 
   void _loadLevel2() {
@@ -275,14 +325,17 @@ class _GameScreenState extends State<GameScreen>
         for (int j = 0; j < 2; j++) {
           _blocks.add(
             Block(
-              position: Offset(towerX + (j - 0.5) * 45, baseY - 45 - (i * 45)),
+              position: Offset(
+                towerX + (j - 0.5) * 45, 
+                baseY - 20 - (i * 45) // Ajustado: -20 para que toque el suelo
+              ),
               type: (i + j) % 2 == 0 ? BlockType.wood : BlockType.stone,
             ),
           );
         }
       }
 
-      _enemies.add(Enemy(position: Offset(towerX, baseY - 200)));
+      _enemies.add(Enemy(position: Offset(towerX, baseY - 180))); // Ajustado
     }
   }
 
@@ -295,16 +348,19 @@ class _GameScreenState extends State<GameScreen>
       for (int j = 0; j < 5; j++) {
         _blocks.add(
           Block(
-            position: Offset(baseX + (j - 2) * 45, baseY - 45 - (i * 45)),
+            position: Offset(
+              baseX + (j - 2) * 45, 
+              baseY - 20 - (i * 45) // Ajustado
+            ),
             type: (i + j) % 2 == 0 ? BlockType.wood : BlockType.stone,
           ),
         );
       }
     }
 
-    _enemies.add(Enemy(position: Offset(baseX - 70, baseY - 100)));
-    _enemies.add(Enemy(position: Offset(baseX + 70, baseY - 100)));
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 200)));
+    _enemies.add(Enemy(position: Offset(baseX - 70, baseY - 80)));
+    _enemies.add(Enemy(position: Offset(baseX + 70, baseY - 80)));
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 180)));
   }
 
   void _loadLevel4() {
@@ -316,7 +372,7 @@ class _GameScreenState extends State<GameScreen>
     for (int i = 0; i < 5; i++) {
       _blocks.add(
         Block(
-          position: Offset(baseX - 120, baseY - 45 - (i * 45)),
+          position: Offset(baseX - 120, baseY - 20 - (i * 45)), // Ajustado
           type: BlockType.stone,
         ),
       );
@@ -326,7 +382,7 @@ class _GameScreenState extends State<GameScreen>
     for (int i = 0; i < 5; i++) {
       _blocks.add(
         Block(
-          position: Offset(baseX + 120, baseY - 45 - (i * 45)),
+          position: Offset(baseX + 120, baseY - 20 - (i * 45)), // Ajustado
           type: BlockType.stone,
         ),
       );
@@ -337,7 +393,10 @@ class _GameScreenState extends State<GameScreen>
       for (int j = 0; j < 4; j++) {
         _blocks.add(
           Block(
-            position: Offset(baseX + (j - 1.5) * 45, baseY - 45 - (i * 45)),
+            position: Offset(
+              baseX + (j - 1.5) * 45, 
+              baseY - 20 - (i * 45) // Ajustado
+            ),
             type: i > 1 ? BlockType.wood : BlockType.stone,
           ),
         );
@@ -345,9 +404,9 @@ class _GameScreenState extends State<GameScreen>
     }
 
     // Enemigos estratégicamente ubicados
-    _enemies.add(Enemy(position: Offset(baseX - 120, baseY - 260)));
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 180)));
-    _enemies.add(Enemy(position: Offset(baseX + 120, baseY - 260)));
+    _enemies.add(Enemy(position: Offset(baseX - 120, baseY - 240)));
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 160)));
+    _enemies.add(Enemy(position: Offset(baseX + 120, baseY - 240)));
   }
 
   void _loadLevel5() {
@@ -360,7 +419,10 @@ class _GameScreenState extends State<GameScreen>
       for (int j = 0; j < 2; j++) {
         _blocks.add(
           Block(
-            position: Offset(baseX + (j - 0.5) * 45, baseY - 45 - (i * 45)),
+            position: Offset(
+              baseX + (j - 0.5) * 45, 
+              baseY - 20 - (i * 45) // Ajustado
+            ),
             type: i < 3 ? BlockType.stone : BlockType.wood,
           ),
         );
@@ -372,34 +434,37 @@ class _GameScreenState extends State<GameScreen>
       for (int i = 0; i < 4; i++) {
         _blocks.add(
           Block(
-            position: Offset(baseX + offsetX, baseY - 45 - (i * 45)),
+            position: Offset(
+              baseX + offsetX, 
+              baseY - 20 - (i * 45) // Ajustado
+            ),
             type: BlockType.stone,
           ),
         );
       }
-      _enemies.add(Enemy(position: Offset(baseX + offsetX, baseY - 200)));
+      _enemies.add(Enemy(position: Offset(baseX + offsetX, baseY - 180)));
     }
 
     // Puentes de madera
     for (int j = 0; j < 3; j++) {
       _blocks.add(
         Block(
-          position: Offset(baseX - 90 + (j * 45), baseY - 200),
+          position: Offset(baseX - 90 + (j * 45), baseY - 180),
           type: BlockType.wood,
         ),
       );
       _blocks.add(
         Block(
-          position: Offset(baseX + 15 + (j * 45), baseY - 200),
+          position: Offset(baseX + 15 + (j * 45), baseY - 180),
           type: BlockType.wood,
         ),
       );
     }
 
     // Enemigos múltiples
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 300)));
-    _enemies.add(Enemy(position: Offset(baseX - 60, baseY - 130)));
-    _enemies.add(Enemy(position: Offset(baseX + 60, baseY - 130)));
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 280)));
+    _enemies.add(Enemy(position: Offset(baseX - 60, baseY - 110)));
+    _enemies.add(Enemy(position: Offset(baseX + 60, baseY - 110)));
   }
 
   void _loadBigBossLevel() {
@@ -412,7 +477,10 @@ class _GameScreenState extends State<GameScreen>
     for (int j = 0; j < 8; j++) {
       _blocks.add(
         Block(
-          position: Offset(baseX + (j - 3.5) * 45, baseY - 45),
+          position: Offset(
+            baseX + (j - 3.5) * 45, 
+            baseY - 20 // Ajustado
+          ),
           type: BlockType.stone,
         ),
       );
@@ -424,7 +492,10 @@ class _GameScreenState extends State<GameScreen>
         for (int j = 0; j < 2; j++) {
           _blocks.add(
             Block(
-              position: Offset(baseX + offsetX + (j * 45), baseY - 45 - (i * 45)),
+              position: Offset(
+                baseX + offsetX + (j * 45), 
+                baseY - 20 - (i * 45) // Ajustado
+              ),
               type: BlockType.stone,
             ),
           );
@@ -437,7 +508,10 @@ class _GameScreenState extends State<GameScreen>
       for (int j = 0; j < 3; j++) {
         _blocks.add(
           Block(
-            position: Offset(baseX + (j - 1) * 45, baseY - 45 - (i * 45)),
+            position: Offset(
+              baseX + (j - 1) * 45, 
+              baseY - 20 - (i * 45) // Ajustado
+            ),
             type: i < 5 ? BlockType.stone : BlockType.wood,
           ),
         );
@@ -448,13 +522,13 @@ class _GameScreenState extends State<GameScreen>
     for (int j = 0; j < 3; j++) {
       _blocks.add(
         Block(
-          position: Offset(baseX - 90 + (j * 45), baseY - 300),
+          position: Offset(baseX - 90 + (j * 45), baseY - 280), // Ajustado
           type: BlockType.wood,
         ),
       );
       _blocks.add(
         Block(
-          position: Offset(baseX + 45 + (j * 45), baseY - 300),
+          position: Offset(baseX + 45 + (j * 45), baseY - 280), // Ajustado
           type: BlockType.wood,
         ),
       );
@@ -462,17 +536,17 @@ class _GameScreenState extends State<GameScreen>
 
     // BOSS ALIEN (más grande y en el centro)
     final bossEnemy = Enemy(
-      position: Offset(baseX, baseY - 420),
+      position: Offset(baseX, baseY - 400), // Ajustado
       radius: 40, // ¡El boss es más grande!
     );
     _enemies.add(bossEnemy);
 
     // Guardias del boss
-    _enemies.add(Enemy(position: Offset(baseX - 135, baseY - 350)));
-    _enemies.add(Enemy(position: Offset(baseX + 135, baseY - 350)));
-    _enemies.add(Enemy(position: Offset(baseX - 70, baseY - 150)));
-    _enemies.add(Enemy(position: Offset(baseX + 70, baseY - 150)));
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 180)));
+    _enemies.add(Enemy(position: Offset(baseX - 135, baseY - 330))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX + 135, baseY - 330))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX - 70, baseY - 130))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX + 70, baseY - 130))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 160))); // Ajustado
   }
 
   void _onPanStart(DragStartDetails details) {
@@ -603,7 +677,12 @@ class _GameScreenState extends State<GameScreen>
       // Bonus por pájaros no usados
       _addScore(_birdsRemaining * 1000);
 
-      Future.delayed(const Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 2), () async {
+        // Mostrar anuncio intersticial cada 2 niveles
+        if (_currentLevel % 2 == 0) {
+          await AdMobService().showInterstitialAd();
+        }
+        
         setState(() {
           _currentLevel++;
           _loadLevel(_currentLevel);
@@ -769,6 +848,33 @@ class _GameScreenState extends State<GameScreen>
     }
   }
 
+  void _openFreeRewards() async {
+    // Navegar a la pantalla de recompensas gratis
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => FreeRewardsScreen(playerName: _playerName)),
+    );
+    
+    // Si se obtuvo una recompensa gratuita, activarla
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _activePowerUp = result['itemName'];
+        _powerUpShots = 1;
+      });
+      
+      // Mostrar mensaje de confirmación
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('¡${result['itemName']} activado GRATIS! Válido por 1 turno'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -780,43 +886,54 @@ class _GameScreenState extends State<GameScreen>
             colors: [Colors.blue[300]!, Colors.blue[50]!],
           ),
         ),
-        child: Stack(
+        child: Column(
           children: [
-            // Juego principal con cámara
-            GestureDetector(
-              onPanStart: _onPanStart,
-              onPanUpdate: _onPanUpdate,
-              onPanEnd: _onPanEnd,
-              child: ClipRect(
-                child: Transform.translate(
-                  offset: Offset(-_cameraOffsetX, 0),
-                  child: CustomPaint(
-                    painter: _GamePainter(
-                      bird: _bird,
-                      blocks: _blocks,
-                      enemies: _enemies,
-                      particles: _particles,
-                      groundY: _groundY,
-                      showSlingshot: !_bird.isLaunched,
-                      dragPosition: _dragPosition,
-                      initialBirdPosition: _initialBirdPosition,
-                      imageCache: _imageCache,
-                      backgroundImage: _backgroundImage,
+            // Juego principal con HUD
+            Expanded(
+              child: Stack(
+                children: [
+                  // Juego principal con cámara
+                  GestureDetector(
+                    onPanStart: _onPanStart,
+                    onPanUpdate: _onPanUpdate,
+                    onPanEnd: _onPanEnd,
+                    child: ClipRect(
+                      child: Transform.translate(
+                        offset: Offset(-_cameraOffsetX, 0),
+                        child: CustomPaint(
+                          painter: _GamePainter(
+                            bird: _bird,
+                            blocks: _blocks,
+                            enemies: _enemies,
+                            particles: _particles,
+                            ground: _ground,
+                            showSlingshot: !_bird.isLaunched,
+                            dragPosition: _dragPosition,
+                            initialBirdPosition: _initialBirdPosition,
+                            imageCache: _imageCache,
+                            backgroundImage: _backgroundImage,
+                            cameraOffsetX: _cameraOffsetX,
+                          ),
+                          size: Size.infinite,
+                        ),
+                      ),
                     ),
-                    size: Size.infinite,
                   ),
-                ),
+
+                  // HUD
+                  _buildHUD(),
+
+                  // Pantalla de victoria
+                  if (_levelComplete && _currentLevel > 3) _buildVictoryScreen(),
+
+                  // Pantalla de Game Over
+                  if (_gameOver) _buildGameOverScreen(),
+                ],
               ),
             ),
-
-            // HUD
-            _buildHUD(),
-
-            // Pantalla de victoria
-            if (_levelComplete && _currentLevel > 3) _buildVictoryScreen(),
-
-            // Pantalla de Game Over
-            if (_gameOver) _buildGameOverScreen(),
+            
+            // Banner de AdMob en la parte inferior
+            const AdMobBannerWidget(),
           ],
         ),
       ),
@@ -881,6 +998,11 @@ class _GameScreenState extends State<GameScreen>
                       icon: const Icon(Icons.leaderboard, color: Colors.white, size: 28),
                       onPressed: _showLeaderboard,
                       tooltip: 'Leaderboard',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.card_giftcard, color: Colors.amber, size: 28),
+                      onPressed: _openFreeRewards,
+                      tooltip: 'Recompensas Gratis',
                     ),
                     IconButton(
                       icon: const Icon(Icons.shopping_cart, color: Colors.amber, size: 28),
@@ -1105,24 +1227,26 @@ class _GamePainter extends CustomPainter {
   final List<Block> blocks;
   final List<Enemy> enemies;
   final List<Particle> particles;
-  final double groundY;
+  final Ground ground;
   final bool showSlingshot;
   final Offset? dragPosition;
   final Offset initialBirdPosition;
   final Map<String, ui.Image> imageCache;
   final ui.Image? backgroundImage;
+  final double cameraOffsetX;
 
   _GamePainter({
     required this.bird,
     required this.blocks,
     required this.enemies,
     required this.particles,
-    required this.groundY,
+    required this.ground,
     required this.showSlingshot,
     this.dragPosition,
     required this.initialBirdPosition,
     required this.imageCache,
     this.backgroundImage,
+    required this.cameraOffsetX,
   });
 
   @override
@@ -1144,24 +1268,8 @@ class _GamePainter extends CustomPainter {
       canvas.drawRect(Rect.fromLTWH(0, 0, size.width + 1200, size.height), backgroundPaint);
     }
     
-    // Dibujar suelo
-    final groundPaint = Paint()..color = Colors.green[700]!;
-    canvas.drawRect(
-      Rect.fromLTWH(0, groundY, size.width + 1200, size.height - groundY),
-      groundPaint,
-    );
-
-    // Línea de tierra/césped
-    final dirtPaint = Paint()..color = Colors.brown[600]!;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        0,
-        groundY + 30,
-        size.width + 1200,
-        size.height - groundY - 30,
-      ),
-      dirtPaint,
-    );
+    // Dibujar suelo usando el componente Ground
+    ground.render(canvas, cameraOffsetX);
 
     // Dibujar honda
     if (showSlingshot) {

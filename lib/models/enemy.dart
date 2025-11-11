@@ -10,12 +10,14 @@ class Enemy {
   bool isDestroyed;
   final int points = 500;
   String imagePath;
+  bool isPlaced; // Indica si el enemigo está colocado (no debe aplicarse gravedad)
 
   Enemy({
     required this.position,
     this.velocity = const Offset(0, 0),
     this.radius = 25,
     this.isDestroyed = false,
+    this.isPlaced = true, // Por defecto, los enemigos están colocados
   }) : imagePath = _getRandomAlienImage();
 
   static String _getRandomAlienImage() {
@@ -24,18 +26,21 @@ class Enemy {
   }
 
   void update() {
-    // Aplicar gravedad
-    velocity = Offset(velocity.dx, velocity.dy + 0.5);
+    // Solo aplicar física si el enemigo no está colocado (ya fue golpeado)
+    if (!isPlaced) {
+      // Aplicar gravedad
+      velocity = Offset(velocity.dx, velocity.dy + 0.5);
 
-    // Aplicar fricción
-    velocity = velocity * 0.98;
+      // Aplicar fricción
+      velocity = velocity * 0.98;
 
-    // Actualizar posición
-    position = position + velocity;
+      // Actualizar posición
+      position = position + velocity;
 
-    // Detener si velocidad es muy baja
-    if (velocity.distance < 0.5) {
-      velocity = const Offset(0, 0);
+      // Detener si velocidad es muy baja
+      if (velocity.distance < 0.5) {
+        velocity = const Offset(0, 0);
+      }
     }
   }
 
@@ -52,6 +57,8 @@ class Enemy {
 
   void destroy() {
     isDestroyed = true;
+    // Cuando el enemigo es destruido, ya no está "colocado"
+    isPlaced = false;
   }
 
   bool collidesWith(Offset point, double otherRadius) {

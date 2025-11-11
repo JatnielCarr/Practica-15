@@ -177,10 +177,10 @@ lib/
 
 1. **Mejorar efectos visuales de power-ups**: Añadir animaciones especiales
 2. **Sistema de logros**: Desbloquear power-ups gratis al completar desafíos
-3. **Modo multijugador**: Competir con otros jugadores en tiempo real
-4. **Más niveles**: Crear mundos temáticos con niveles únicos
-5. **Tutorial integrado**: Explicar las mecánicas del juego al nuevo jugador
-6. **Replay system**: Guardar y reproducir mejores jugadas
+3. **Más niveles**: Crear mundos temáticos con niveles únicos
+4. **Tutorial integrado**: Explicar las mecánicas del juego al nuevo jugador
+5. **Replay system**: Guardar y reproducir mejores jugadas
+6. **Sistema de partículas mejorado**: Efectos más realistas en las colisiones
 
 ## 🐛 Notas de Desarrollo
 
