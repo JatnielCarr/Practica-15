@@ -40,8 +40,8 @@ class _GameScreenState extends State<GameScreen>
   List<Enemy> _enemies = [];
   List<Particle> _particles = [];
 
-  final Offset _initialBirdPosition = const Offset(150, 280);
-  final double _groundY = 520; // Ajustado para pantalla (más abajo, más visible)
+  final Offset _initialBirdPosition = const Offset(150, 200); // Ajustado para móvil
+  final double _groundY = 330; // Ajustado para que quepa en pantalla móvil horizontal
   final double _maxStretch = 100;
 
   int _score = 0;
@@ -82,7 +82,7 @@ class _GameScreenState extends State<GameScreen>
     _bird = Bird(position: _initialBirdPosition);
     _ground = Ground(
       y: _groundY,
-      height: 100.0,
+      height: 70.0, // Reducido para pantalla móvil (antes 100)
       width: 2000.0,
       friction: 0.8,
       restitution: 0.3,
@@ -293,8 +293,8 @@ class _GameScreenState extends State<GameScreen>
   }
 
   void _loadLevel1() {
-    // Torre simple 3x3
-    final baseX = 500.0;
+    // Torre simple 3x3 (optimizado para móvil)
+    final baseX = 450.0; // Más cerca del centro
     final baseY = _groundY;
 
     for (int i = 0; i < 3; i++) {
@@ -302,8 +302,8 @@ class _GameScreenState extends State<GameScreen>
         _blocks.add(
           Block(
             position: Offset(
-              baseX + (j - 1) * 45, 
-              baseY - 20 - (i * 45) // Ajustado: -20 para que toque el suelo (height/2)
+              baseX + (j - 1) * 40,  // Reducido de 45 a 40
+              baseY - 20 - (i * 40)  // Reducido de 45 a 40
             ),
             type: (i + j) % 2 == 0 ? BlockType.wood : BlockType.stone,
           ),
@@ -311,23 +311,23 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 160))); // Ajustado también
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 140))); // Ajustado
   }
 
   void _loadLevel2() {
-    // Dos torres
-    final tower1X = 450.0;
-    final tower2X = 650.0;
+    // Dos torres (optimizado para móvil)
+    final tower1X = 400.0; // Ajustado
+    final tower2X = 550.0; // Ajustado
     final baseY = _groundY;
 
     for (final towerX in [tower1X, tower2X]) {
-      for (int i = 0; i < 4; i++) {
+      for (int i = 0; i < 3; i++) { // Reducido de 4 a 3 niveles
         for (int j = 0; j < 2; j++) {
           _blocks.add(
             Block(
               position: Offset(
-                towerX + (j - 0.5) * 45, 
-                baseY - 20 - (i * 45) // Ajustado: -20 para que toque el suelo
+                towerX + (j - 0.5) * 40,  // Reducido
+                baseY - 20 - (i * 40)     // Reducido
               ),
               type: (i + j) % 2 == 0 ? BlockType.wood : BlockType.stone,
             ),
@@ -335,22 +335,22 @@ class _GameScreenState extends State<GameScreen>
         }
       }
 
-      _enemies.add(Enemy(position: Offset(towerX, baseY - 180))); // Ajustado
+      _enemies.add(Enemy(position: Offset(towerX, baseY - 140))); // Ajustado
     }
   }
 
   void _loadLevel3() {
-    // Torre grande 5x4
-    final baseX = 550.0;
+    // Torre grande (optimizado para móvil)
+    final baseX = 500.0; // Centrado
     final baseY = _groundY;
 
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 5; j++) {
+    for (int i = 0; i < 3; i++) { // Reducido de 4 a 3 niveles
+      for (int j = 0; j < 4; j++) { // Reducido de 5 a 4 bloques de ancho
         _blocks.add(
           Block(
             position: Offset(
-              baseX + (j - 2) * 45, 
-              baseY - 20 - (i * 45) // Ajustado
+              baseX + (j - 1.5) * 40, // Ajustado
+              baseY - 20 - (i * 40)   // Ajustado
             ),
             type: (i + j) % 2 == 0 ? BlockType.wood : BlockType.stone,
           ),
@@ -358,118 +358,102 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    _enemies.add(Enemy(position: Offset(baseX - 70, baseY - 80)));
-    _enemies.add(Enemy(position: Offset(baseX + 70, baseY - 80)));
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 180)));
+    _enemies.add(Enemy(position: Offset(baseX - 60, baseY - 70)));
+    _enemies.add(Enemy(position: Offset(baseX + 60, baseY - 70)));
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 140)));
   }
 
   void _loadLevel4() {
-    // Castillo con murallas
-    final baseX = 550.0;
+    // Castillo con murallas (optimizado para móvil)
+    final baseX = 500.0;
     final baseY = _groundY;
 
     // Muralla izquierda
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) { // Reducido de 5 a 4
       _blocks.add(
         Block(
-          position: Offset(baseX - 120, baseY - 20 - (i * 45)), // Ajustado
+          position: Offset(baseX - 100, baseY - 20 - (i * 40)), // Ajustado
           type: BlockType.stone,
         ),
       );
     }
 
     // Muralla derecha
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) { // Reducido de 5 a 4
       _blocks.add(
         Block(
-          position: Offset(baseX + 120, baseY - 20 - (i * 45)), // Ajustado
+          position: Offset(baseX + 100, baseY - 20 - (i * 40)), // Ajustado
           type: BlockType.stone,
         ),
       );
     }
 
     // Interior del castillo
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 2; i++) { // Reducido de 3 a 2
+      for (int j = 0; j < 3; j++) { // Reducido de 4 a 3
         _blocks.add(
           Block(
             position: Offset(
-              baseX + (j - 1.5) * 45, 
-              baseY - 20 - (i * 45) // Ajustado
+              baseX + (j - 1) * 40, // Ajustado
+              baseY - 20 - (i * 40) // Ajustado
             ),
-            type: i > 1 ? BlockType.wood : BlockType.stone,
+            type: i > 0 ? BlockType.wood : BlockType.stone,
           ),
         );
       }
     }
 
     // Enemigos estratégicamente ubicados
-    _enemies.add(Enemy(position: Offset(baseX - 120, baseY - 240)));
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 160)));
-    _enemies.add(Enemy(position: Offset(baseX + 120, baseY - 240)));
+    _enemies.add(Enemy(position: Offset(baseX - 100, baseY - 180)));
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 100)));
+    _enemies.add(Enemy(position: Offset(baseX + 100, baseY - 180)));
   }
 
   void _loadLevel5() {
-    // Fortaleza compleja
-    final baseX = 600.0;
+    // Fortaleza compleja (optimizado para móvil)
+    final baseX = 550.0;
     final baseY = _groundY;
 
-    // Torre principal alta
-    for (int i = 0; i < 6; i++) {
+    // Torre principal
+    for (int i = 0; i < 4; i++) { // Reducido de 6 a 4
       for (int j = 0; j < 2; j++) {
         _blocks.add(
           Block(
             position: Offset(
-              baseX + (j - 0.5) * 45, 
-              baseY - 20 - (i * 45) // Ajustado
+              baseX + (j - 0.5) * 40, // Ajustado
+              baseY - 20 - (i * 40)   // Ajustado
             ),
-            type: i < 3 ? BlockType.stone : BlockType.wood,
+            type: i < 2 ? BlockType.stone : BlockType.wood,
           ),
         );
       }
     }
 
     // Torres laterales
-    for (final offsetX in [-150.0, 150.0]) {
-      for (int i = 0; i < 4; i++) {
+    for (final offsetX in [-120.0, 120.0]) { // Reducido de 150 a 120
+      for (int i = 0; i < 3; i++) { // Reducido de 4 a 3
         _blocks.add(
           Block(
             position: Offset(
               baseX + offsetX, 
-              baseY - 20 - (i * 45) // Ajustado
+              baseY - 20 - (i * 40) // Ajustado
             ),
             type: BlockType.stone,
           ),
         );
       }
-      _enemies.add(Enemy(position: Offset(baseX + offsetX, baseY - 180)));
-    }
-
-    // Puentes de madera
-    for (int j = 0; j < 3; j++) {
-      _blocks.add(
-        Block(
-          position: Offset(baseX - 90 + (j * 45), baseY - 180),
-          type: BlockType.wood,
-        ),
-      );
-      _blocks.add(
-        Block(
-          position: Offset(baseX + 15 + (j * 45), baseY - 180),
-          type: BlockType.wood,
-        ),
-      );
+      _enemies.add(Enemy(position: Offset(baseX + offsetX, baseY - 140)));
     }
 
     // Enemigos múltiples
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 280)));
-    _enemies.add(Enemy(position: Offset(baseX - 60, baseY - 110)));
-    _enemies.add(Enemy(position: Offset(baseX + 60, baseY - 110)));
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 180)));
+    _enemies.add(Enemy(position: Offset(baseX - 60, baseY - 70)));
+    _enemies.add(Enemy(position: Offset(baseX + 60, baseY - 70)));
   }
 
   void _loadBigBossLevel() {
-    // ¡NIVEL DEL BIG BOSS! 👑
-    final baseX = 650.0;
+    // ¡NIVEL DEL BIG BOSS! 👑 (optimizado para móvil)
+    final baseX = 600.0;
     final baseY = _groundY;
 
     // Fortaleza masiva del boss
@@ -478,8 +462,8 @@ class _GameScreenState extends State<GameScreen>
       _blocks.add(
         Block(
           position: Offset(
-            baseX + (j - 3.5) * 45, 
-            baseY - 20 // Ajustado
+            baseX + (j - 3.5) * 40, // Ajustado
+            baseY - 20
           ),
           type: BlockType.stone,
         ),
@@ -487,14 +471,14 @@ class _GameScreenState extends State<GameScreen>
     }
 
     // Torres gemelas
-    for (final offsetX in [-135.0, 135.0]) {
-      for (int i = 1; i < 7; i++) {
+    for (final offsetX in [-120.0, 120.0]) { // Reducido de 135 a 120
+      for (int i = 1; i < 5; i++) { // Reducido de 7 a 5
         for (int j = 0; j < 2; j++) {
           _blocks.add(
             Block(
               position: Offset(
-                baseX + offsetX + (j * 45), 
-                baseY - 20 - (i * 45) // Ajustado
+                baseX + offsetX + (j * 40), // Ajustado
+                baseY - 20 - (i * 40)
               ),
               type: BlockType.stone,
             ),
@@ -504,15 +488,15 @@ class _GameScreenState extends State<GameScreen>
     }
 
     // Torre central (la más alta)
-    for (int i = 1; i < 9; i++) {
+    for (int i = 1; i < 7; i++) { // Reducido de 9 a 7
       for (int j = 0; j < 3; j++) {
         _blocks.add(
           Block(
             position: Offset(
-              baseX + (j - 1) * 45, 
-              baseY - 20 - (i * 45) // Ajustado
+              baseX + (j - 1) * 40, // Ajustado
+              baseY - 20 - (i * 40)
             ),
-            type: i < 5 ? BlockType.stone : BlockType.wood,
+            type: i < 4 ? BlockType.stone : BlockType.wood,
           ),
         );
       }
@@ -522,13 +506,13 @@ class _GameScreenState extends State<GameScreen>
     for (int j = 0; j < 3; j++) {
       _blocks.add(
         Block(
-          position: Offset(baseX - 90 + (j * 45), baseY - 280), // Ajustado
+          position: Offset(baseX - 80 + (j * 40), baseY - 200), // Ajustado
           type: BlockType.wood,
         ),
       );
       _blocks.add(
         Block(
-          position: Offset(baseX + 45 + (j * 45), baseY - 280), // Ajustado
+          position: Offset(baseX + 40 + (j * 40), baseY - 200), // Ajustado
           type: BlockType.wood,
         ),
       );
@@ -536,17 +520,17 @@ class _GameScreenState extends State<GameScreen>
 
     // BOSS ALIEN (más grande y en el centro)
     final bossEnemy = Enemy(
-      position: Offset(baseX, baseY - 400), // Ajustado
+      position: Offset(baseX, baseY - 280), // Reducido de 400
       radius: 40, // ¡El boss es más grande!
     );
     _enemies.add(bossEnemy);
 
     // Guardias del boss
-    _enemies.add(Enemy(position: Offset(baseX - 135, baseY - 330))); // Ajustado
-    _enemies.add(Enemy(position: Offset(baseX + 135, baseY - 330))); // Ajustado
-    _enemies.add(Enemy(position: Offset(baseX - 70, baseY - 130))); // Ajustado
-    _enemies.add(Enemy(position: Offset(baseX + 70, baseY - 130))); // Ajustado
-    _enemies.add(Enemy(position: Offset(baseX, baseY - 160))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX - 120, baseY - 220))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX + 120, baseY - 220))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX - 70, baseY - 110))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX + 70, baseY - 110))); // Ajustado
+    _enemies.add(Enemy(position: Offset(baseX, baseY - 140))); // Ajustado
   }
 
   void _onPanStart(DragStartDetails details) {
